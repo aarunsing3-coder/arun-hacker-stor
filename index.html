@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07110e">
+  <title>ARUN HACKER STOR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="top-glow"></div>
+  <header class="header">
+    <a class="brand" href="#"><span class="brand-mark">AH</span><span>ARUN <b>HACKER</b><small>STOR</small></span></a>
+    <div class="header-right"><span class="live-dot"></span><span class="live-text">STORE ONLINE</span><button id="adminOpen" class="outline-btn">ADMIN LOGIN</button></div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow"><span>◆</span> ANDROID FILE MARKETPLACE</div>
+      <h1>DISCOVER.<br><em>DOWNLOAD.</em> EXPLORE.</h1>
+      <p>Your destination for useful Android apps and files.</p>
+      <div class="hero-stats"><div><b id="totalApps">0</b><span>FILES</span></div><i></i><div><b>APK + ZIP</b><span>FORMATS</span></div><i></i><div><b>24/7</b><span>ACCESS</span></div></div>
+    </section>
+
+    <section class="toolbar">
+      <div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search apps and files..."></div>
+      <select id="categoryFilter"><option value="">All categories</option><option>Tools</option><option>Games</option><option>Security</option><option>Social</option><option>Education</option><option>Other</option></select>
+    </section>
+
+    <section class="section-head"><div><span class="section-kicker">LIBRARY / 01</span><h2>Latest uploads</h2></div><span class="file-count" id="visibleCount">0 FILES</span></section>
+    <section id="appGrid" class="app-grid"><div class="loading">CONNECTING TO STORE...</div></section>
+    <div id="emptyState" class="empty hidden"><div class="empty-icon">⌁</div><h3>No files found</h3><p>Try another search or check back later.</p></div>
+    <div id="notice" class="notice hidden"></div>
+
+    <footer><span>© <span id="year"></span> ARUN HACKER STOR</span><span>DOWNLOAD RESPONSIBLY · SCAN FILES BEFORE INSTALLING</span></footer>
+  </main>
+
+  <div id="adminModal" class="modal hidden">
+    <div class="modal-backdrop" data-close="1"></div>
+    <section class="modal-card">
+      <button class="close" id="closeModal">×</button>
+      <div class="modal-label">CONTROL PANEL / ADMIN</div>
+      <h2 id="modalTitle">Admin access</h2>
+      <p id="modalIntro" class="muted">Sign in to manage store files.</p>
+      <form id="loginForm">
+        <label>Email<input id="adminEmail" type="email" autocomplete="username" required placeholder="Admin email"></label>
+        <label>Password<input id="adminPassword" type="password" autocomplete="current-password" required placeholder="Password"></label>
+        <button class="primary-btn" type="submit">SIGN IN <span>→</span></button>
+      </form>
+      <div id="adminPanel" class="hidden">
+        <div class="admin-bar"><span class="live-dot"></span> ADMIN SESSION ACTIVE <button id="logoutBtn" class="text-btn">LOG OUT</button></div>
+        <form id="uploadForm">
+          <input id="editId" type="hidden">
+          <label>App / file name<input id="fileTitle" required maxlength="80" placeholder="Example: My Android Tool"></label>
+          <div class="two-col">
+            <label>Version<input id="fileVersion" maxlength="24" placeholder="1.0.0"></label>
+            <label>Category<select id="fileCategory"><option>Tools</option><option>Games</option><option>Security</option><option>Social</option><option>Education</option><option>Other</option></select></label>
+          </div>
+          <label>Description<textarea id="fileDescription" rows="3" maxlength="500" placeholder="What does this file do?"></textarea></label>
+          <label>APK or ZIP file<input id="fileInput" type="file" accept=".apk,.zip,application/zip,application/vnd.android.package-archive" required></label>
+          <p class="hint">Maximum file size: 100 MB. Only upload files you own or are authorized to distribute.</p>
+          <button class="primary-btn" id="uploadBtn" type="submit">UPLOAD FILE <span>↑</span></button>
+          <button class="cancel-edit hidden" id="cancelEdit" type="button">Cancel edit</button>
+        </form>
+        <div class="admin-list-head">YOUR STORE FILES</div>
+        <div id="adminList" class="admin-list"></div>
+      </div>
+      <p id="modalMessage" class="modal-message"></p>
+    </section>
+  </div>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
