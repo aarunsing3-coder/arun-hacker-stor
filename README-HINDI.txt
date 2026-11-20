@@ -49,3 +49,14 @@ LIMITS / NOTES
 - Admin-only access tabhi sahi rahega jab public sign-ups disabled hon aur sirf aapka trusted admin user ho. Agar baad me aur staff accounts banayein, current authenticated policies unhe bhi admin-level upload access denge; tab admin-user-specific RLS policies lagani hongi.
 - Download counter best-effort hai; browser download prompt/device behavior par depend karta hai.
 - APK/ZIP security: unknown files ko upload na karein; malware scan karein; copyright/permission ka dhyan rakhein.
+
+APK ICON UPDATE
+1. Supabase > SQL Editor > New query kholein.
+2. APK_ICON_DATABASE_UPDATE.sql ka code paste karke RUN karein. (Sirf ek baar.)
+3. GitHub repository me updated ZIP extract karke files ko root me upload/replace karein.
+4. Vercel deployment complete hone dein.
+5. Website > ADMIN LOGIN karein. Admin panel me GENERATE MISSING APK ICONS dabayein.
+6. Purane APK icons automatically extract karne ki koshish hogi. Original APK files aur download links ko touch/delete/re-upload nahi kiya jata.
+7. Aage se naya APK upload karne par uska icon automatically extract hoga. ZIP par ZIP symbol aur extraction fail hone par fallback icon dikhega.
+
+NOTE: Purane APK icon extraction ke liye browser ko Supabase Storage se APK file read karna hota hai. Agar kisi file ka icon extract na ho, us file par default icon rahega; original APK/download functionality phir bhi rahegi.
