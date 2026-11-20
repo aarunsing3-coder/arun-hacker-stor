@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/app-info-parser@1.1.6/dist/app-info-parser.min.js"></script>
 </head>
 <body>
   <div class="top-glow"></div>
@@ -66,6 +67,8 @@
           <button class="cancel-edit hidden" id="cancelEdit" type="button">Cancel edit</button>
         </form>
         <div class="admin-list-head">YOUR STORE FILES</div>
+        <button class="cancel-edit" id="backfillIcons" type="button">GENERATE MISSING APK ICONS</button>
+        <p class="hint">Purane APK files ke icons ek baar banane ke liye is button ko dabayein. APK files delete ya re-upload nahi hongi.</p>
         <div id="adminList" class="admin-list"></div>
       </div>
       <p id="modalMessage" class="modal-message"></p>
