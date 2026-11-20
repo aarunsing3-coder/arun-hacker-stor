@@ -17,6 +17,27 @@
     $("modalMessage").textContent = message;
     $("modalMessage").style.color = error ? "#ff9b9b" : "#00f5a0";
   }
+  function fallbackIcon(title, fileType) {
+    return `<div class="app-icon" aria-label="${escapeHtml(fileType||"FILE")} icon">${fileType === "ZIP" ? "ZIP" : escapeHtml((title||"AH").slice(0,2).toUpperCase())}</div>`;
+  }
+  function iconMarkup(app) {
+    if (app.file_type === "APK" && app.icon_data && /^data:image\/(png|jpeg|webp);base64,/i.test(app.icon_data)) {
+      return `<img class="app-icon" src="${app.icon_data}" alt="${escapeHtml(app.title)} app icon" loading="lazy">`;
+    }
+    return fallbackIcon(app.title, app.file_type);
+  }
+  function iconDataFromResult(result) {
+    const value = result && result.icon;
+    if (typeof value !== "string" || !value) return null;
+    if (value.startsWith("data:image/")) return value;
+    if (/^[A-Za-z0-9+/=\r\n]+$/.test(value)) return `data:image/png;base64,${value.replace(/\s/g,"")}`;
+    return null;
+  }
+  async function extractApkIcon(file) {
+    if (!window.AppInfoParser) return null;
+    const result = await new window.AppInfoParser(file).parse();
+    return iconDataFromResult(result);
+  }
   function formatSize(bytes) {
     if (!bytes) return "UNKNOWN SIZE";
     const units = ["B","KB","MB","GB"]; let n=bytes, i=0;
@@ -53,7 +74,7 @@
     $("visibleCount").textContent = `${shown.length} FILE${shown.length===1?"":"S"}`;
     $("appGrid").innerHTML = shown.map(a => `
       <article class="app-card">
-        <div class="card-top"><div class="app-icon">${escapeHtml((a.title||"AH").slice(0,2).toUpperCase())}</div>
+        <div class="card-top">${iconMarkup(a)}
           <div style="min-width:0"><div class="app-name">${escapeHtml(a.title)}</div><div class="app-meta">v${escapeHtml(a.version||"1.0")} · ${escapeHtml(a.category||"Other")}</div></div>
           <span class="tag">${escapeHtml(a.file_type||"FILE")}</span>
         </div>
@@ -127,13 +148,18 @@
     $("uploadBtn").disabled=true; modalMessage(file?"Uploading file...":"Saving changes...");
     try{
       let existing=apps.find(a=>a.id===id), storagePath=existing?.storage_path, fileName=existing?.file_name, fileType=existing?.file_type, fileSize=existing?.file_size;
+      let iconData=existing?.icon_data || null;
       if(file){
+        if(file.name.toLowerCase().endsWith(".apk")) {
+          modalMessage("APK icon is being extracted...");
+          try { iconData = await extractApkIcon(file); } catch(parseError) { console.warn("APK icon extraction failed:",parseError); iconData=null; }
+        } else { iconData=null; }
         storagePath=`${crypto.randomUUID()}.${file.name.split(".").pop().toLowerCase()}`;
         const {error:upErr}=await client.storage.from(BUCKET).upload(storagePath,file,{upsert:false,contentType:file.type||"application/octet-stream"});
         if(upErr) throw upErr;
         fileName=file.name; fileType=file.name.split(".").pop().toUpperCase(); fileSize=file.size;
       }
-      const record={title,version:$("fileVersion").value.trim()||"1.0",category:$("fileCategory").value,description:$("fileDescription").value.trim(),storage_path:storagePath,file_name:fileName,file_type:fileType,file_size:fileSize};
+      const record={title,version:$("fileVersion").value.trim()||"1.0",category:$("fileCategory").value,description:$("fileDescription").value.trim(),icon_data:iconData,storage_path:storagePath,file_name:fileName,file_type:fileType,file_size:fileSize};
       let result;
       if(id) result=await client.from("apps").update(record).eq("id",id);
       else result=await client.from("apps").insert({...record,downloads:0});
@@ -143,6 +169,32 @@
     }catch(err){console.error(err);modalMessage(err.message||"Upload failed.",true);}
     finally{$("uploadBtn").disabled=false;}
   });
+  $("backfillIcons").addEventListener("click", async () => {
+    if (!currentUser) { modalMessage("Please sign in first.",true); return; }
+    const pending = apps.filter(a => a.file_type === "APK" && !a.icon_data);
+    if (!pending.length) { modalMessage("All APK icons are already generated."); return; }
+    const button = $("backfillIcons"); button.disabled = true;
+    let done = 0, failed = 0;
+    for (const app of pending) {
+      modalMessage(`Generating old APK icons: ${done+failed+1}/${pending.length} — ${app.title}`);
+      try {
+        const {data,error} = await client.storage.from(BUCKET).createSignedUrl(app.storage_path,120);
+        if (error) throw error;
+        const response = await fetch(data.signedUrl);
+        if (!response.ok) throw new Error("Could not read APK file");
+        const blob = await response.blob();
+        const iconData = await extractApkIcon(new File([blob],app.file_name,{type:"application/vnd.android.package-archive"}));
+        if (!iconData) throw new Error("APK icon not found in this file");
+        const {error:updateError} = await client.from("apps").update({icon_data:iconData}).eq("id",app.id);
+        if (updateError) throw updateError;
+        done++;
+      } catch(err) { console.warn("Could not generate icon for",app.title,err); failed++; }
+    }
+    button.disabled = false;
+    modalMessage(`Finished: ${done} icons generated, ${failed} could not be extracted.`);
+    await loadApps();
+  });
+
   async function deleteApp(id){
     const a=apps.find(x=>x.id===id); if(!a || !confirm(`Delete "${a.title}"? This cannot be undone.`))return;
     const {error}=await client.from("apps").delete().eq("id",id);
