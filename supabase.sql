@@ -24,6 +24,9 @@ create table if not exists public.apps (
   created_at timestamptz not null default now()
 );
 
+-- Save extracted APK icons without changing or re-uploading original APK files.
+alter table public.apps add column if not exists icon_data text;
+
 alter table public.apps enable row level security;
 
 drop policy if exists "Public can view apps" on public.apps;
